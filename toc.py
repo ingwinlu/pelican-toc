@@ -51,9 +51,9 @@ class HtmlTreeNode:
         if(new_string==None): #not the only child!
             new_string = new_header.find_all(text=lambda t: not isinstance(t, Comment), recursive=True)
             new_string = "".join(new_string)
-        if(new_id==None):
+        if(new_id==None): #no id available, generate one
             new_id=slugify(new_string, '-')
-        new_id=unique(new_id,ids)
+        new_id=unique(new_id,ids) # make sure id is unique
         new_header.attrs['id'] = new_id
         if(self.level < new_level):
             #can add as child
@@ -66,6 +66,7 @@ class HtmlTreeNode:
             self.parent.childs = self.parent.childs + [new_node]
             return new_node, new_header
         elif(self.level > new_level):
+            #let parent handle it
             return self.parent.add(new_header, ids)
 
     def toString(self):
@@ -79,7 +80,6 @@ class HtmlTreeNode:
             ret = ret + child.toString()
         if (self.childs != []):
             ret = ret + "</ul>"
-
         ret = ret + "</li>"
         if (self.parent==None):
             ret = ret + "</ul></div>"
@@ -88,7 +88,7 @@ class HtmlTreeNode:
 def generate_toc(content):
     if isinstance(content, contents.Static):
         return
-    all_ids = set() #rest all_ids
+    all_ids = set()
     tree = node = HtmlTreeNode(None, content.metadata.get('title', 'Title'), "h0", "")
     soup = BeautifulSoup(content._content)
     settoc = False
@@ -98,9 +98,7 @@ def generate_toc(content):
         header.replaceWith(new_header)#to get our ids back into soup
     if (settoc):
         content.toc = BeautifulSoup(tree.toString()).decode(formatter="html")
-    
     content._content = soup.decode(formatter="html")
-
 
 def register():
     signals.content_object_init.connect(generate_toc)
