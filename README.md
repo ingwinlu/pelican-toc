@@ -7,6 +7,8 @@ This plugin generates a table of contents for pelican articles and pages, availa
 `extract-toc` uses a markdown extension to generate a toc and then extract it via beautifulsoup. This extension generates the toc itself, removing the need to write `[ToC]` in your articles. Also there is a 'health' check on id's which should be generated via markdown.extensions.headerid per default, but somehow don't always end up in the output (educated guess blames typogrify). 
 
 #Usage
+##requirements
+Beautifulsoup4 - install via `pip install beautifulsoup4`
 ##theme
 ```
 {% if article.toc %}
@@ -47,3 +49,4 @@ Title: Peeking at erlang/chicagoboss
 ```
 
 #Todo
+*   options for toc generation either via config/metadata
