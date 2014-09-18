@@ -14,7 +14,6 @@ import unicodedata
 stolen from python.extensions.headerid
 https://github.com/waylan/Python-Markdown/blob/master/markdown/extensions/headerid.py
 '''
-all_ids = set()
 IDCOUNT_RE = re.compile(r'^(.*)_([0-9]+)$')
 
 def slugify(value, separator):
@@ -44,35 +43,31 @@ class HtmlTreeNode:
         self.header = header
         self.level = level
         self.id = id
-    
-    def add(self, new_header):
+
+    def add(self, new_header, ids):
         new_level = new_header.name
         new_string = new_header.string
         new_id = new_header.attrs.get('id')
-        
         if(new_string==None): #not the only child!
             new_string = new_header.find_all(text=lambda t: not isinstance(t, Comment), recursive=True)
             new_string = "".join(new_string)
-
-        #check if id is set else generate one
         if(new_id==None):
             new_id=slugify(new_string, '-')
-
-        new_id=unique(new_id,all_ids)
-
+        new_id=unique(new_id,ids)
+        new_header.attrs['id'] = new_id
         if(self.level < new_level):
             #can add as child
             new_node = HtmlTreeNode(self, new_string, new_level, new_id)
             self.childs = self.childs + [new_node]
-            return new_node
+            return new_node, new_header
         elif(self.level == new_level):
             #new sibling
             new_node = HtmlTreeNode(self.parent, new_string, new_level, new_id)
             self.parent.childs = self.parent.childs + [new_node]
-            return new_node
+            return new_node, new_header
         elif(self.level > new_level):
-            return self.parent.add(new_header)
-    
+            return self.parent.add(new_header, ids)
+
     def toString(self):
         ret = ""
         if (self.parent==None):
@@ -84,7 +79,7 @@ class HtmlTreeNode:
             ret = ret + child.toString()
         if (self.childs != []):
             ret = ret + "</ul>"
-        
+
         ret = ret + "</li>"
         if (self.parent==None):
             ret = ret + "</ul></div>"
@@ -93,14 +88,18 @@ class HtmlTreeNode:
 def generate_toc(content):
     if isinstance(content, contents.Static):
         return
+    all_ids = set() #rest all_ids
     tree = node = HtmlTreeNode(None, content.metadata.get('title', 'Title'), "h0", "")
     soup = BeautifulSoup(content._content)
     settoc = False
     for header in soup.findAll(re.compile("^h\d")):
         settoc = True
-        node = node.add(header)
+        node, new_header = node.add(header, all_ids)
+        header.replaceWith(new_header)#to get our ids back into soup
     if (settoc):
         content.toc = BeautifulSoup(tree.toString()).decode(formatter="html")
+    
+    content._content = soup.decode(formatter="html")
 
 
 def register():
