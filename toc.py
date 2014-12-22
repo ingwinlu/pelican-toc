@@ -90,7 +90,7 @@ def generate_toc(content):
         return
     all_ids = set()
     tree = node = HtmlTreeNode(None, content.metadata.get('title', 'Title'), "h0", "")
-    soup = BeautifulSoup(content._content)
+    soup = BeautifulSoup(content._content, 'html.parser')
     settoc = False
     for header in soup.findAll(re.compile("^h\d")):
         settoc = True
