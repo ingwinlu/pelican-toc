@@ -73,7 +73,7 @@ class HtmlTreeNode:
         ret = ""
         if (self.parent==None):
             ret = ret + "<div id='toc'><ul>"
-        ret = ret + "<li><a href='#{0}' title='{1}'>{1}</a>".format(self.id, self.header)
+        ret = ret + "<li><a class='toc-href' href='#{0}' title='{1}'>{1}</a>".format(self.id, self.header)
         if (self.childs != []):
             ret = ret + "<ul>"
         for child in self.childs:
