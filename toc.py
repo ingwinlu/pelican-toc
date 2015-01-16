@@ -5,6 +5,7 @@ toc
 This plugin generates tocs for pages and articles.
 '''
 
+from __future__ import unicode_literals
 from pelican import signals, contents
 from bs4 import BeautifulSoup, Comment
 import re
