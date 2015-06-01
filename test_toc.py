@@ -8,8 +8,11 @@ from pelican.tests.support import get_settings
 
 
 class TestToCGeneration(unittest.TestCase):
-    settings = get_settings()
-    md_reader = MarkdownReader(settings)
+
+    def setUp(self):
+        toc.init_default_config(None)
+        self.settings = get_settings()
+        self.md_reader = MarkdownReader(self.settings)
 
     def _handle_article_generation(self, path):
         content, metadata = self.md_reader.read(path)
@@ -35,6 +38,14 @@ class TestToCGeneration(unittest.TestCase):
         result, expected = self._generate_toc(
                 "test_data/article_with_headers_nonascii.md",
                 "test_data/article_with_headers_toc_nonascii.html"
+            )
+        self.assertEqual(result.toc, expected)
+
+    def test_toc_generation_exclude_small_headers(self):
+        self.settings['TOC']['EXCLUDE_SMALL_HEADERS'] = True
+        result, expected = self._generate_toc(
+                "test_data/article_with_headers_exclude_small_headers.md",
+                "test_data/article_with_headers_toc_exclude_small_headers.html"
             )
         self.assertEqual(result.toc, expected)
 
