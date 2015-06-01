@@ -1,4 +1,4 @@
-pelican-toc
+pelican-toc [![Build Status](https://travis-ci.org/ingwinlu/pelican-toc.svg?branch=master)](https://travis-ci.org/ingwinlu/pelican-toc)
 ===================================
 
 This plugin generates a table of contents for pelican articles and pages, available for themes via `article.toc`.
