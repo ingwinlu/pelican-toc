@@ -48,5 +48,18 @@ Title: Peeking at erlang/chicagoboss
 </div>
 ```
 
+##settings
+```
+TOC = {
+    'TOC_HEADERS' : '^h[1-6]',  # What headers should be included in the generated toc
+                                # Expected format is a regular expression
+
+    'TOC_RUN'     : 'true'      # Default value for toc generation, if it does not evaluate
+                                # to 'true' no toc will be generated
+}
+```
+All those settings can be overwritten on a per page/article basis via metadata.
+Just use the respective keyword as metadata (example: `toc_headers: ^h[1-4]`)
+
 #Todo
 *   options for toc generation either via config/metadata

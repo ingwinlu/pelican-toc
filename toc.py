@@ -7,9 +7,12 @@ This plugin generates tocs for pages and articles.
 
 from __future__ import unicode_literals
 from bs4 import BeautifulSoup, Comment
+import logging
 from pelican import signals, contents
 from pelican.utils import slugify, python_2_unicode_compatible
 import re
+
+logger = logging.getLogger(__name__)
 
 '''
 https://github.com/waylan/Python-Markdown/blob/master/markdown/extensions/headerid.py
@@ -32,13 +35,12 @@ end
 
 @python_2_unicode_compatible
 class HtmlTreeNode(object):
-    def __init__(self, parent, header, level, id, settings):
+    def __init__(self, parent, header, level, id):
         self.children = []
         self.parent = parent
         self.header = header
         self.level = level
         self.id = id
-        self.settings = settings
 
     def add(self, new_header, ids):
         new_level = new_header.name
@@ -50,19 +52,16 @@ class HtmlTreeNode(object):
             new_string = "".join(new_string)
 
         if not new_id:
-            new_id=slugify(new_string,
-                self.settings.get('SLUG_SUBSTITUTIONS', ()))
+            new_id=slugify(new_string, ())
 
         new_id=unique(new_id,ids) # make sure id is unique
         new_header.attrs['id'] = new_id
         if(self.level < new_level):
-            new_node = HtmlTreeNode(self, new_string, new_level,
-                new_id, self.settings)
+            new_node = HtmlTreeNode(self, new_string, new_level, new_id)
             self.children += [new_node]
             return new_node, new_header
         elif(self.level == new_level):
-            new_node = HtmlTreeNode(self.parent, new_string, new_level,
-                new_id, self.settings)
+            new_node = HtmlTreeNode(self.parent, new_string, new_level, new_id)
             self.parent.children += [new_node]
             return new_node, new_header
         elif(self.level > new_level):
@@ -82,20 +81,37 @@ class HtmlTreeNode(object):
         return ret
 
 
+def init_default_config(pelican):
+    from pelican.settings import DEFAULT_CONFIG
+
+    TOC_DEFAULT = {
+        'TOC_HEADERS' : '^h[1-6]',
+        'TOC_RUN'     : 'true'
+    }
+
+    DEFAULT_CONFIG.setdefault('TOC', TOC_DEFAULT)
+    if(pelican):
+        pelican.settings.setdefault('TOC', TOC_DEFAULT)
+
+
 def generate_toc(content):
     if isinstance(content, contents.Static):
         return
+    if not content.metadata.get('toc_run', content.settings['TOC']['TOC_RUN']) == 'true':
+        return
 
     all_ids = set()
-    tree = node = HtmlTreeNode(None, content.metadata.get('title', 'Title'),
-        'h0', '', content.settings)
+    tree = node = HtmlTreeNode(None, content.metadata.get('title', 'Title'), 'h0', '')
     soup = BeautifulSoup(content._content, 'html.parser')
     settoc = False
 
-    if content.settings['TOC']['EXCLUDE_SMALL_HEADERS']:
-        header_re = re.compile('^h[1-3]')
-    else:
-        header_re = re.compile('^h[1-6]')
+    try:
+        header_re = re.compile(content.metadata.get(
+            'toc_headers', content.settings['TOC']['TOC_HEADERS']))
+    except re.error as e:
+        logger.error("TOC_HEADERS '%s' is not a valid re\n%s",
+            content.settings['TOC']['TOC_HEADERS'])
+        raise e
 
     for header in soup.findAll(header_re):
         settoc = True
@@ -107,18 +123,6 @@ def generate_toc(content):
         content.toc = BeautifulSoup(tree_string, 'html.parser').decode(formatter='html')
     content._content = soup.decode(formatter='html')
 
-def set_default_config(settings, toc_default):
-    settings.setdefault('TOC', toc_default)
-
-def init_default_config(pelican):
-    from pelican.settings import DEFAULT_CONFIG
-    toc_default = {
-        'EXCLUDE_SMALL_HEADERS': False
-    }
-
-    set_default_config(DEFAULT_CONFIG, toc_default)
-    if(pelican):
-        set_default_config(pelican.settings, toc_default)
 
 def register():
     signals.initialized.connect(init_default_config)
