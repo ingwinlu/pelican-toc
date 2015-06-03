@@ -3,9 +3,6 @@ pelican-toc [![Build Status](https://travis-ci.org/ingwinlu/pelican-toc.svg?bran
 
 This plugin generates a table of contents for pelican articles and pages, available for themes via `article.toc`.
 
-#Differences between pelican-toc and pelican-extract-toc
-`extract-toc` uses a markdown extension to generate a toc and then extract it via beautifulsoup. This extension generates the toc itself, removing the need to write `[ToC]` in your articles. Also there is a 'health' check on id's which should be generated via markdown.extensions.headerid per default, but somehow don't always end up in the output. 
-
 #Usage
 ##requirements
 Beautifulsoup4 - install via `pip install beautifulsoup4`
@@ -61,5 +58,9 @@ TOC = {
 All those settings can be overwritten on a per page/article basis via metadata.
 Just use the respective keyword as metadata (example: `toc_headers: ^h[1-4]`)
 
-#Todo
-*   options for toc generation either via config/metadata
+#Differences between pelican-toc and pelican-extract-toc
+`extract-toc` uses a markdown extension to generate a toc and then extract it via beautifulsoup.
+This extension generates the toc itself, removing the need to write `[ToC]` in your articles.
+There also is a 'health' check on id's which should be generated via markdown.extensions.headerid per default, but somehow don't always end up in the output. 
+
+
