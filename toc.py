@@ -34,9 +34,6 @@ def unique(id, ids):
             id = '%s_%d' % (id, 1)
     ids.add(id)
     return id
-'''
-end
-'''
 
 
 @python_2_unicode_compatible
