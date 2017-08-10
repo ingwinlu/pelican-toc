@@ -41,12 +41,14 @@ end
 
 @python_2_unicode_compatible
 class HtmlTreeNode(object):
-    def __init__(self, parent, header, level, id):
+
+    def __init__(self, parent, header, level, id, include_title):
         self.children = []
         self.parent = parent
         self.header = header
         self.level = level
         self.id = id
+        self.include_title = include_title
 
     def add(self, new_header, ids):
         new_level = new_header.name
@@ -65,28 +67,39 @@ class HtmlTreeNode(object):
         new_id = unique(new_id, ids)  # make sure id is unique
         new_header.attrs['id'] = new_id
         if(self.level < new_level):
-            new_node = HtmlTreeNode(self, new_string, new_level, new_id)
+            new_node = HtmlTreeNode(self, new_string, new_level, new_id,
+                                    self.include_title)
             self.children += [new_node]
             return new_node, new_header
         elif(self.level == new_level):
-            new_node = HtmlTreeNode(self.parent, new_string, new_level, new_id)
+            new_node = HtmlTreeNode(self.parent, new_string, new_level, new_id,
+                                    self.include_title)
             self.parent.children += [new_node]
             return new_node, new_header
         elif(self.level > new_level):
             return self.parent.add(new_header, ids)
 
     def __str__(self):
-        ret = "<a class='toc-href' href='#{0}' title='{1}'>{1}</a>".format(
-                self.id, self.header)
+        if self.parent or self.include_title:
+            ret = "<a class='toc-href' href='#{0}' title='{1}'>{1}</a>".format(
+                    self.id, self.header)
+        else:
+            ret = ''
 
         if self.children:
             ret += "<ul>{}</ul>".format('{}'*len(self.children)).format(
                     *self.children)
 
-        ret = "<li>{}</li>".format(ret)
+        # each list
+        if self.parent or self.include_title:
+            ret = "<li>{}</li>".format(ret)
 
+        # end wrapper
         if not self.parent:
-            ret = "<div id='toc'><ul>{}</ul></div>".format(ret)
+            if self.include_title:
+                ret = "<div id='toc'><ul>{}</ul></div>".format(ret)
+            else:
+                ret = "<div id='toc'>{}</div>".format(ret)
 
         return ret
 
@@ -96,7 +109,8 @@ def init_default_config(pelican):
 
     TOC_DEFAULT = {
         'TOC_HEADERS': '^h[1-6]',
-        'TOC_RUN': 'true'
+        'TOC_RUN': 'true',
+        'TOC_INCLUDE_TITLE': 'true',
     }
 
     DEFAULT_CONFIG.setdefault('TOC', TOC_DEFAULT)
@@ -113,10 +127,13 @@ def generate_toc(content):
             content.settings['TOC']['TOC_RUN'])
     if not _toc_run == 'true':
         return
+    _toc_include_title = content.metadata.get(
+        'toc_include_title',
+        content.settings['TOC']['TOC_INCLUDE_TITLE']) == 'true'
 
     all_ids = set()
     title = content.metadata.get('title', 'Title')
-    tree = node = HtmlTreeNode(None, title, 'h0', '')
+    tree = node = HtmlTreeNode(None, title, 'h0', '', _toc_include_title)
     soup = BeautifulSoup(content._content, 'html.parser')
     settoc = False
 
