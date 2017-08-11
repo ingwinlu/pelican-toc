@@ -17,6 +17,13 @@ from pelican.utils import python_2_unicode_compatible, slugify
 
 
 logger = logging.getLogger(__name__)
+TOC_DEFAULT = {
+    'TOC_HEADERS': '^h[1-6]',
+    'TOC_RUN': 'true',
+    'TOC_INCLUDE_TITLE': 'true',
+}
+TOC_KEY = 'TOC'
+
 
 '''
 https://github.com/waylan/Python-Markdown/blob/master/markdown/extensions/headerid.py
@@ -103,15 +110,16 @@ class HtmlTreeNode(object):
 def init_default_config(pelican):
     from pelican.settings import DEFAULT_CONFIG
 
-    TOC_DEFAULT = {
-        'TOC_HEADERS': '^h[1-6]',
-        'TOC_RUN': 'true',
-        'TOC_INCLUDE_TITLE': 'true',
-    }
+    def update_settings(settings):
+        temp = TOC_DEFAULT.copy()
+        if TOC_KEY in settings:
+            temp.update(settings[TOC_KEY])
+        settings[TOC_KEY] = temp
+        return settings
 
-    DEFAULT_CONFIG.setdefault('TOC', TOC_DEFAULT)
-    if(pelican):
-        pelican.settings.setdefault('TOC', TOC_DEFAULT)
+    DEFAULT_CONFIG = update_settings(DEFAULT_CONFIG)
+    if pelican:
+        pelican.settings = update_settings(pelican.settings)
 
 
 def generate_toc(content):
@@ -120,12 +128,13 @@ def generate_toc(content):
 
     _toc_run = content.metadata.get(
             'toc_run',
-            content.settings['TOC']['TOC_RUN'])
+            content.settings[TOC_KEY]['TOC_RUN'])
     if not _toc_run == 'true':
         return
+
     _toc_include_title = content.metadata.get(
         'toc_include_title',
-        content.settings['TOC']['TOC_INCLUDE_TITLE']) == 'true'
+        content.settings[TOC_KEY]['TOC_INCLUDE_TITLE']) == 'true'
 
     all_ids = set()
     title = content.metadata.get('title', 'Title')
@@ -135,10 +144,10 @@ def generate_toc(content):
 
     try:
         header_re = re.compile(content.metadata.get(
-            'toc_headers', content.settings['TOC']['TOC_HEADERS']))
+            'toc_headers', content.settings[TOC_KEY]['TOC_HEADERS']))
     except re.error as e:
         logger.error("TOC_HEADERS '%s' is not a valid re\n%s",
-                     content.settings['TOC']['TOC_HEADERS'])
+                     content.settings[TOC_KEY]['TOC_HEADERS'])
         raise e
 
     for header in soup.findAll(header_re):
