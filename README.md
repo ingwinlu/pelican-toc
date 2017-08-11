@@ -3,10 +3,10 @@ pelican-toc [![Build Status](https://travis-ci.org/ingwinlu/pelican-toc.svg?bran
 
 This plugin generates a table of contents for pelican articles and pages, available for themes via `article.toc`.
 
-#Usage
-##requirements
+# Usage
+## requirements
 Beautifulsoup4 - install via `pip install beautifulsoup4`
-##theme
+## theme
 ```
 {% if article.toc %}
 <div class="col-lg-3 hidden-xs hidden-sm">
@@ -14,14 +14,14 @@ Beautifulsoup4 - install via `pip install beautifulsoup4`
 </div>
 {% endif %}
 ```
-##article
+## article
 ```
 Title: Peeking at erlang/chicagoboss
 ###Intro
 ###Chicagoboss Magic
 ###Result
 ```
-##output
+## output
 ```
 <div class="col-lg-3 hidden-xs hidden-sm">
     <div id="toc">
@@ -45,7 +45,7 @@ Title: Peeking at erlang/chicagoboss
 </div>
 ```
 
-##settings
+## settings
 ```
 TOC = {
     'TOC_HEADERS'       : '^h[1-6]', # What headers should be included in
@@ -55,17 +55,14 @@ TOC = {
     'TOC_RUN'           : 'true',    # Default value for toc generation,
                                      # if it does not evaluate
                                      # to 'true' no toc will be generated
-    'TOC_INCLUDE_TITLE': 'true',     # Default value for include article title
-                                     # if it is 'false', it will generate
-                                     # Wikipedia like Table of Contents.
+
+    'TOC_INCLUDE_TITLE': 'true',     # If 'true' include title in toc
 }
 ```
 All those settings can be overwritten on a per page/article basis via metadata.
 Just use the respective keyword as metadata (example: `toc_headers: ^h[1-4]`)
 
-#Differences between pelican-toc and pelican-extract-toc
+# Differences between pelican-toc and pelican-extract-toc
 `extract-toc` uses a markdown extension to generate a toc and then extract it via beautifulsoup.
 This extension generates the toc itself, removing the need to write `[ToC]` in your articles.
 There also is a 'health' check on id's which should be generated via markdown.extensions.headerid per default, but somehow don't always end up in the output. 
-
-
