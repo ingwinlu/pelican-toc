@@ -77,11 +77,10 @@ class HtmlTreeNode(object):
             return self.parent.add(new_header, ids)
 
     def __str__(self):
+        ret = ''
         if self.parent or self.include_title:
             ret = "<a class='toc-href' href='#{0}' title='{1}'>{1}</a>".format(
                     self.id, self.header)
-        else:
-            ret = ''
 
         if self.children:
             ret += "<ul>{}</ul>".format('{}'*len(self.children)).format(
